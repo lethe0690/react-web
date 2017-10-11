@@ -1,15 +1,57 @@
-const fakeList = [
-    {id: 1, name: 'a', email: 'a@gmail.com'},
-    {id: 2, name: 'b', email: 'b@gmail.com'},
-    {id: 3, name: 'c', email: 'c@gmail.com'},
-];
+const emInit = function () {
+    return (dispatch)=> {
+        fetch('https://peiwen-client-manager.193b.starter-ca-central-1.openshiftapps.com/v1/clients')
+            .then((response) => response.json())
+            .then((res) => {
+                let list = res.map((item)=> {
+                    return {id: item._id, name: item.name, email: item.email}
+                });
+                dispatch({type: 'EM_INIT', data: list});
+                dispatch({type: 'EM_READY'});
+            })
+            .catch((error) => {
+                dispatch({type: 'EM_INIT_ERROR', data: error})
+            });
+    }
+};
+
+const emAdd = function (name, email) {
+    return (dispatch)=> {
+
+        fetch('https://peiwen-client-manager.193b.starter-ca-central-1.openshiftapps.com/v1/clients', {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(
+                {
+                    name: name,
+                    email: email
+                }
+            )
+        })
+            .then((response)=>response.json())
+            .then((res)=> {
+                dispatch({type: 'EMPLOYEE_ADD', data: {id: res.id, name: name, email: email}});
+                dispatch({type: 'EM_CLEANUP'});
+                dispatch({type: 'MODAL_CLOSE'});
+            })
+            .catch((err)=> {
+                dispatch({type: 'EM_ADD_ERROR', data: 'API error'});
+            })
+    }
+};
 
 
 const employeeListReducer = (state = {
-    list: fakeList,
+    ready: false,
+    list: [],
     isModalOpen: false,
     employeeName: "",
-    employeeEmail: ""
+    employeeEmail: "",
+    errorText: ""
 }, action) => {
     switch (action.type) {
         case 'EMPLOYEE_ADD':
@@ -34,6 +76,18 @@ const employeeListReducer = (state = {
         case 'EM_CLEANUP':
             return Object.assign({}, state, {employeeName: ""}, {employeeEmail: ""});
 
+        case 'EM_INIT':
+            return Object.assign({}, state, {list: action.data});
+
+        case 'EM_READY':
+            return Object.assign({}, state, {ready: true});
+
+        case 'EM_ADD_ERROR':
+            return Object.assign({}, state, {errorText: action.data});
+
+        case 'EM_ADD_ERROR_RESET':
+            return Object.assign({}, state, {errorText: ""});
+
         default :
             return state;
     }
@@ -42,10 +96,12 @@ const employeeListReducer = (state = {
 
 const mapStateToProps = state => {
     return {
+        ready: state.employeeList.ready,
         list: state.employeeList.list,
         isModalOpen: state.employeeList.isModalOpen,
         employeeName: state.employeeList.employeeName,
         employeeEmail: state.employeeList.employeeEmail,
+        errorText: state.employeeList.errorText
     }
 };
 
@@ -55,12 +111,11 @@ const mapDispatchToProps = (dispatch)=> {
             dispatch({type: 'MODAL_OPEN'});
         },
         onSubmitNewEmployee(name, email){
-            dispatch({type: 'EMPLOYEE_ADD', data: {id: 4, name: name, email: email}});
-            dispatch({type: 'EM_CLEANUP'});
-            dispatch({type: 'MODAL_CLOSE'});
+            dispatch(emAdd(name, email));
         },
         onCloseModal(){
             dispatch({type: 'MODAL_CLOSE'});
+            dispatch({type: 'EM_ADD_ERROR_RESET'});
         },
         onRemove(id){
             dispatch({type: 'EMPLOYEE_REMOVE', data: id});
@@ -75,4 +130,4 @@ const mapDispatchToProps = (dispatch)=> {
 };
 
 
-module.exports = {employeeListReducer, mapDispatchToProps, mapStateToProps};
+module.exports = {employeeListReducer, mapDispatchToProps, mapStateToProps, emInit};
