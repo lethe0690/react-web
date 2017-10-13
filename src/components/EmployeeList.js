@@ -22,11 +22,15 @@ const generateList = function (list, onRemove, ready) {
     return list.map((item)=> {
 
         return (
-            <div key={item.id}>
-                <li> name: {item.name} </li>
-                <li> email: {item.email} </li>
+            <div key={item.id} className="cell">
 
-                <button onClick={(e)=>{onRemove(item.id)}}> remove</button>
+                <img className="avatar" alt={'avatar'} src={require("../asset/add.jpg")}/>
+
+                <span className="cell-name">  {item.name} </span>
+                <p className="cell-email">  {item.email} </p>
+
+                <img className="cell-remove" alt={'remove'} src={require("../asset/minus.png")}
+                     onClick={(e)=>{onRemove(item.id)}}/>
 
             </div>);
 
@@ -44,13 +48,21 @@ const EmployeeList = ({
     ready, list, onRemove, onOpenModal, isModalOpen, onCloseModal,
     employeeName, employeeEmail, onNameChanged, onEmailChanged, onSubmitNewEmployee, errorText
 }) => (
-    <div>
+    <div className="container">
+
+        <div className="header">
         <h1>Employee List</h1>
+        </div>
 
-        <input type="button" value="add an employee" onClick={onOpenModal}/>
+        <div className="bar">
+            <img className="button-add" width="32" height="32" alt={'add-employee'} src={require("../asset/add.jpg")}
+                 onClick={onOpenModal}/>
+        </div>
 
+        <div className="list">
         {generateList(list, onRemove, ready)}
-
+        </div>
+            
         <ReactModal
             isOpen={isModalOpen}
             contentLabel="Minimal Modal"
