@@ -3,6 +3,10 @@
     height: 100%;
 }
 
+.center-text {
+    text-align: center;
+}
+
 .header {
     width: 100%;
     text-align: center;
@@ -15,7 +19,7 @@
 
 .bar .button-add {
     float: right;
-    margin: 25px
+    margin-right: 7%
 }
 
 .list {
@@ -57,4 +61,15 @@
     position: absolute;
     right: 7%;
     top: 25%;
+}
+
+input {
+    border: 1px solid black;
+}
+
+#filter {
+    position: absolute;
+    left: 10px;
+    border: none;
+    border-bottom: 1px solid black;
 }

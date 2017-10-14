@@ -1,3 +1,7 @@
+// register this variable to temp store the full list of result. only for the filter
+// any action will affect the range of full list should modify this variable as well
+let fullList = [];
+
 const emInit = function () {
     return (dispatch)=> {
         fetch('https://peiwen-client-manager.193b.starter-ca-central-1.openshiftapps.com/v1/clients')
@@ -51,17 +55,25 @@ const employeeListReducer = (state = {
     isModalOpen: false,
     employeeName: "",
     employeeEmail: "",
-    errorText: ""
+    errorText: "",
+    filterText: ""
 }, action) => {
     switch (action.type) {
         case 'EMPLOYEE_ADD':
-            return Object.assign({}, state, {list: [...state.list, action.data]});
+        {
+            fullList = [...fullList, action.data];
+            return Object.assign({}, state, {list: fullList});
+        }
         case 'EMPLOYEE_REMOVE':
-            return Object.assign({}, state, {
-                list: state.list.filter((item)=> {
-                    return item.id !== action.data
-                })
+        {
+            fullList = fullList.filter((item)=> {
+                return item.id !== action.data
             });
+
+            return Object.assign({}, state, {
+                list: fullList
+            });
+        }
 
         case 'MODAL_OPEN':
             return Object.assign({}, state, {isModalOpen: true});
@@ -77,8 +89,10 @@ const employeeListReducer = (state = {
             return Object.assign({}, state, {employeeName: ""}, {employeeEmail: ""});
 
         case 'EM_INIT':
-            return Object.assign({}, state, {list: action.data});
-
+        {
+            fullList = action.data;
+            return Object.assign({}, state, {list: fullList});
+        }
         case 'EM_READY':
             return Object.assign({}, state, {ready: true});
 
@@ -88,9 +102,23 @@ const employeeListReducer = (state = {
         case 'EM_ADD_ERROR_RESET':
             return Object.assign({}, state, {errorText: ""});
 
+        case 'FILTER_UPDATED':
+            return Object.assign({}, state, {list: filteredList(action.data)}, {filterText: action.data});
+
+        case 'RESET_FILTER':
+            return Object.assign({}, state, {filterText: ""});
+
         default :
             return state;
     }
+};
+
+const filteredList = (filterText)=> {
+    if (filterText === "") return fullList;
+    return fullList.filter((item)=> {
+        return (item.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        item.email.toLowerCase().includes(filterText.toLowerCase()));
+    })
 };
 
 
@@ -101,7 +129,8 @@ const mapStateToProps = state => {
         isModalOpen: state.employeeList.isModalOpen,
         employeeName: state.employeeList.employeeName,
         employeeEmail: state.employeeList.employeeEmail,
-        errorText: state.employeeList.errorText
+        errorText: state.employeeList.errorText,
+        filterText: state.employeeList.filterText
     }
 };
 
@@ -112,6 +141,7 @@ const mapDispatchToProps = (dispatch)=> {
         },
         onSubmitNewEmployee(name, email){
             dispatch(emAdd(name, email));
+            dispatch({type: 'RESET_FILTER'});
         },
         onCloseModal(){
             dispatch({type: 'MODAL_CLOSE'});
@@ -119,12 +149,16 @@ const mapDispatchToProps = (dispatch)=> {
         },
         onRemove(id){
             dispatch({type: 'EMPLOYEE_REMOVE', data: id});
+            dispatch({type: 'RESET_FILTER'});
         },
         onNameChanged(name){
             dispatch({type: 'EMNAME_UPDATED', data: name});
         },
         onEmailChanged(email){
             dispatch({type: 'EMEMAIL_UPDATED', data: email});
+        },
+        onFilter(filterText){
+            dispatch({type: 'FILTER_UPDATED', data: filterText});
         }
     }
 };
