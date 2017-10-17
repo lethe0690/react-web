@@ -2,6 +2,18 @@
 // any action will affect the range of full list should modify this variable as well
 let fullList = [];
 
+//work as a heck to simulate some data when API call fails
+let fakeList = [
+    {id: 1, name: 'Adam Jhones', email: 'a@gmail.com'},
+    {id: 2, name: 'Blaer Sana', email: 'b@gmail.com'},
+    {id: 3, name: 'Catty Domes', email: 'c@gmail.com'},
+    {id: 4, name: 'Don Mills', email: 'd@gmail.com'},
+    {id: 5, name: 'Estelle Fang', email: 'e@gmail.com'},
+    {id: 6, name: 'Ferry Coolma', email: 'F@gmail.com'},
+    {id: 7, name: 'KK De', email: 'g@gmail.com'},
+];
+
+
 const emInit = function () {
     return (dispatch)=> {
         fetch('https://peiwen-client-manager.193b.starter-ca-central-1.openshiftapps.com/v1/clients')
@@ -14,7 +26,13 @@ const emInit = function () {
                 dispatch({type: 'EM_READY'});
             })
             .catch((error) => {
-                dispatch({type: 'EM_INIT_ERROR', data: error})
+                dispatch({type: 'EM_INIT_ERROR', data: error});
+
+                //work as a hack to add data if API call fail
+                setTimeout(()=> {
+                    dispatch({type: 'EM_INIT', data: fakeList});
+                    dispatch({type: 'EM_READY'});
+                }, 2000)
             });
     }
 };
